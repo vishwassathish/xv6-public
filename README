@@ -2,43 +2,6 @@ xv6 is a re-implementation of Dennis Ritchie's and Ken Thompson's Unix
 Version 6 (v6).  xv6 loosely follows the structure and style of v6,
 but is implemented for a modern x86-based multiprocessor using ANSI C.
 
-ACKNOWLEDGMENTS
-
-xv6 is inspired by John Lions's Commentary on UNIX 6th Edition (Peer
-to Peer Communications; ISBN: 1-57398-013-7; 1st edition (June 14,
-2000)). See also http://pdos.csail.mit.edu/6.828/2016/xv6.html, which
-provides pointers to on-line resources for v6.
-
-xv6 borrows code from the following sources:
-    JOS (asm.h, elf.h, mmu.h, bootasm.S, ide.c, console.c, and others)
-    Plan 9 (entryother.S, mp.h, mp.c, lapic.c)
-    FreeBSD (ioapic.c)
-    NetBSD (console.c)
-
-The following people have made contributions: Russ Cox (context switching,
-locking), Cliff Frey (MP), Xiao Yu (MP), Nickolai Zeldovich, and Austin
-Clements.
-
-We are also grateful for the bug reports and patches contributed by Silas
-Boyd-Wickizer, Anton Burtsev, Cody Cutler, Mike CAT, Tej Chajed, Nelson Elhage,
-Saar Ettinger, Alice Ferrazzi, Nathaniel Filardo, Peter Froehlich, Yakir Goaron,
-Shivam Handa, Bryan Henry, Jim Huang, Alexander Kapshuk, Anders Kaseorg,
-kehao95, Wolfgang Keller, Eddie Kohler, Austin Liew, Imbar Marinescu, Yandong
-Mao, Hitoshi Mitake, Carmi Merimovich, Joel Nider, Greg Price, Ayan Shafqat,
-Eldar Sehayek, Yongming Shen, Cam Tenny, Rafael Ubal, Warren Toomey, Stephen Tu,
-Pablo Ventura, Xi Wang, Keiichi Watanabe, Nicolas Wolovick, Grant Wu, Jindong
-Zhang, Icenowy Zheng, and Zou Chang Wei.
-
-The code in the files that constitute xv6 is
-Copyright 2006-2016 Frans Kaashoek, Robert Morris, and Russ Cox.
-
-ERROR REPORTS
-
-Please send errors and suggestions to Frans Kaashoek and Robert Morris
-(kaashoek,rtm@mit.edu). The main purpose of xv6 is as a teaching
-operating system for MIT's 6.828, so we are more interested in
-simplifications and clarifications than new features.
-
 BUILDING AND RUNNING XV6
 
 To build xv6 on an x86 ELF machine (like Linux or FreeBSD), run
@@ -47,3 +10,79 @@ will need to install a cross-compiler gcc suite capable of producing
 x86 ELF binaries. See http://pdos.csail.mit.edu/6.828/2016/tools.html.
 Then run "make TOOLPREFIX=i386-jos-elf-". Now install the QEMU PC
 simulator and run "make qemu".
+
+IMPLEMENTING SCANF IN XV6
+
+1. Check if xv6 is running properly
+    $ cd xv6    
+    $ make 
+    $ make qemu
+    To exit, close the qemu window.
+
+2. Add the files scanf.c and scanf.d to the xv6 folder and compile scanf.c as :
+    $ gcc -c scanf.c
+    (Don't worry about the warnings)
+    $ ls
+    you should see the object file scanf.o along with .c and .d files.
+
+3. Changing the makefile and adding scanf function to the library
+    $ gedit Makefile
+        In the makefile
+        a) Navigate to " EXTRA =\" and add scanf.c after printf.c
+        b) Navigate to " ULIB " and add scanf.o after printf.o
+    $ gedit user.h
+        In this file, navigate to the bottom and add the function defition of scanf after printf as  
+        void scanf(int, char *, void *);
+    
+4. Test the above configuration by
+    $ make
+    $ make qemu
+    If the qemu window opens succesfully, the configuration for scanf program was completed.
+
+5. Since we dont have any way of compiling and running a program from within xv6, we 
+   have to add the program as a system program and run it Via a command.
+   Add the app.c file to the xv6 folder.
+
+6. Changing the makefile
+    a) Navigate to " EXTRA =\ " and add app.c after wc.c
+    b) Navigate to " UPROGS =\ " and add _app\ after _wc\
+
+7. Test if the app was added succesfully
+    $ make
+    $ make qemu
+    $ ls
+    if a command named "app" appears in the list, it was succesfully added.
+
+8. Run the app and test scanf 
+    Inside the qemu shell 
+        $ app
+        This should prompt "Enter number" and so on
+
+
+9. THE scanf() FUNCTION
+
+ ->Syntax : void scanf(int fd, char *fmt, void *var)
+
+-> atoi(char *buf) 
+An inbuilt function in C, to convert a given string representing an integer, to its integer value. It finds the equivalent integral value for only positive integers.
+Returns a positive integer.
+
+-> int atoi_decimal(char *buf) 
+ Function to extend the functionality of atoi() to even negative integers.
+ Returns an integer
+
+-> int atoi_hexa(char *buf, int start) 
+ Function to read a string representing hexadecimal number and convert to its equivalent decimal representation.
+ Returns an integer
+
+
+-> int atoi_octal(char *buf, int start)  
+Function to read a string representing octal number and convert to its equivalent decimal representation. 
+Returns an integer
+
+->int generalized_atoi(char *buf) 
+Used for %i which can read Decimal, octal and hexadecimal number according to their first two prefix characters.
+If the number starts from '0x' , it is considered to be a hexadecimal number.
+If the number starts from '0' , it is considered to be an octal number.
+Else, the number is interpreted to be of decimal type.
+Returns the corresponding integer.
